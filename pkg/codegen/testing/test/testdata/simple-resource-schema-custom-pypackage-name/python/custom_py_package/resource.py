@@ -26,9 +26,7 @@ class ResourceArgs:
     def _configure(
              _setter: Callable[[Any, Any], None],
              bar: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if bar is not None:
             _setter("bar", bar)
 

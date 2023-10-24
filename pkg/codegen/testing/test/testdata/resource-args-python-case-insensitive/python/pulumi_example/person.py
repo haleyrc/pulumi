@@ -31,9 +31,7 @@ class PersonArgs:
              _setter: Callable[[Any, Any], None],
              name: Optional[pulumi.Input[str]] = None,
              pets: Optional[pulumi.Input[Sequence[pulumi.Input['PetArgs']]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if name is not None:
             _setter("name", name)
         if pets is not None:

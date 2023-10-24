@@ -22,10 +22,8 @@ class GodArgs:
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
+             opts: Optional[pulumi.ResourceOptions]=None):
         pass
-
 
 
 class God(pulumi.CustomResource):

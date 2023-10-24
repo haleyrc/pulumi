@@ -42,9 +42,7 @@ class RubberTreeArgs:
              container: Optional[pulumi.Input['_root_inputs.ContainerArgs']] = None,
              farm: Optional[pulumi.Input[Union['Farm', str]]] = None,
              size: Optional[pulumi.Input['TreeSize']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if diameter is None:
             diameter = 6
         _setter("diameter", diameter)
@@ -123,9 +121,7 @@ class _RubberTreeState:
     def _configure(
              _setter: Callable[[Any, Any], None],
              farm: Optional[pulumi.Input[Union['Farm', str]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if farm is None:
             farm = '(unknown)'
         if farm is not None:

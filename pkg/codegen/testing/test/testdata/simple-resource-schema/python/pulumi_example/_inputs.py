@@ -29,9 +29,7 @@ class ConfigMapArgs:
     def _configure(
              _setter: Callable[[Any, Any], None],
              config: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if config is not None:
             _setter("config", config)
 
@@ -58,13 +56,9 @@ class ObjectWithNodeOptionalInputsArgs:
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             foo: Optional[pulumi.Input[str]] = None,
+             foo: pulumi.Input[str],
              bar: Optional[pulumi.Input[int]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if foo is None:
-            raise TypeError("Missing 'foo' argument")
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("foo", foo)
         if bar is not None:
             _setter("bar", bar)
@@ -116,11 +110,7 @@ class ObjectArgs:
              foo: Optional[pulumi.Input['Resource']] = None,
              others: Optional[pulumi.Input[Sequence[pulumi.Input[Sequence[pulumi.Input['SomeOtherObjectArgs']]]]]] = None,
              still_others: Optional[pulumi.Input[Mapping[str, pulumi.Input[Sequence[pulumi.Input['SomeOtherObjectArgs']]]]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if still_others is None and 'stillOthers' in kwargs:
-            still_others = kwargs['stillOthers']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if bar is not None:
             _setter("bar", bar)
         if configs is not None:
@@ -196,9 +186,7 @@ class SomeOtherObjectArgs:
     def _configure(
              _setter: Callable[[Any, Any], None],
              baz: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if baz is not None:
             _setter("baz", baz)
 

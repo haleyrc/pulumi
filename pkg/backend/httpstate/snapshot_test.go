@@ -47,6 +47,7 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/cmdutil"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/result"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
@@ -311,8 +312,8 @@ func generateSnapshots(t testing.TB, r *rand.Rand, resourceCount, resourcePayloa
 					_ deploy.Target,
 					entries engine.JournalEntries,
 					_ []engine.Event,
-					_ error,
-				) error {
+					_ result.Result,
+				) result.Result {
 					journalEntries = entries
 					return nil
 				},

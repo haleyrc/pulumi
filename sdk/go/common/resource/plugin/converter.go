@@ -36,8 +36,7 @@ type ConvertStateRequest struct {
 }
 
 type ConvertStateResponse struct {
-	Resources   []ResourceImport
-	Diagnostics hcl.Diagnostics
+	Resources []ResourceImport
 }
 
 type ConvertProgramRequest struct {

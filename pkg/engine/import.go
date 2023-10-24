@@ -18,11 +18,12 @@ import (
 	"github.com/pulumi/pulumi/pkg/v3/display"
 	"github.com/pulumi/pulumi/pkg/v3/resource/deploy"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/result"
 )
 
 func Import(u UpdateInfo, ctx *Context, opts UpdateOptions, imports []deploy.Import,
 	dryRun bool,
-) (*deploy.Plan, display.ResourceChanges, error) {
+) (*deploy.Plan, display.ResourceChanges, result.Result) {
 	contract.Requiref(u != nil, "u", "cannot be nil")
 	contract.Requiref(ctx != nil, "ctx", "cannot be nil")
 
@@ -30,13 +31,13 @@ func Import(u UpdateInfo, ctx *Context, opts UpdateOptions, imports []deploy.Imp
 
 	info, err := newDeploymentContext(u, "import", ctx.ParentSpan)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, result.FromError(err)
 	}
 	defer info.Close()
 
 	emitter, err := makeEventEmitter(ctx.Events, u)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, result.FromError(err)
 	}
 	defer emitter.Close()
 

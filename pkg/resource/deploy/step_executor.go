@@ -95,11 +95,9 @@ type stepExecutor struct {
 	workers        sync.WaitGroup     // WaitGroup tracking the worker goroutines that are owned by this step executor.
 	incomingChains chan incomingChain // Incoming chains that we are to execute
 
-	ctx    context.Context    // cancellation context for the current deployment.
-	cancel context.CancelFunc // CancelFunc that cancels the above context.
-
-	// atomic error indicating an error seen by the step executor, if multiple errors are seen this will only hold one.
-	sawError atomic.Value
+	ctx      context.Context    // cancellation context for the current deployment.
+	cancel   context.CancelFunc // CancelFunc that cancels the above context.
+	sawError atomic.Value       // atomic boolean indicating whether or not the step excecutor saw that there was an error.
 }
 
 //
@@ -220,7 +218,7 @@ func (se *stepExecutor) ExecuteRegisterResourceOutputs(e RegisterResourceOutputs
 			outErr := fmt.Errorf("resource complete event returned an error: %w", eventerr)
 			diagMsg := diag.RawMessage(reg.URN(), outErr.Error())
 			se.deployment.Diag().Errorf(diagMsg)
-			se.cancelDueToError(eventerr)
+			se.cancelDueToError()
 			return nil
 		}
 	}
@@ -229,12 +227,8 @@ func (se *stepExecutor) ExecuteRegisterResourceOutputs(e RegisterResourceOutputs
 }
 
 // Errored returns whether or not this step executor saw a step whose execution ended in failure.
-func (se *stepExecutor) Errored() error {
-	err := se.sawError.Load()
-	if err == nil {
-		return nil
-	}
-	return err.(error)
+func (se *stepExecutor) Errored() bool {
+	return se.sawError.Load().(bool)
 }
 
 // SignalCompletion signals to the stepExecutor that there are no more chains left to execute. All worker
@@ -277,7 +271,7 @@ func (se *stepExecutor) executeChain(workerID int, chain chain) {
 
 		if err != nil {
 			se.log(workerID, "step %v on %v failed, signalling cancellation", step.Op(), step.URN())
-			se.cancelDueToError(err)
+			se.cancelDueToError()
 			if err != errStepApplyFailed {
 				// Step application errors are recorded by the OnResourceStepPost callback. This is confusing,
 				// but it means that at this level we shouldn't be logging any errors that came from there.
@@ -292,8 +286,8 @@ func (se *stepExecutor) executeChain(workerID int, chain chain) {
 	}
 }
 
-func (se *stepExecutor) cancelDueToError(err error) {
-	se.sawError.Store(err)
+func (se *stepExecutor) cancelDueToError() {
+	se.sawError.Store(true)
 	if !se.continueOnError {
 		se.cancel()
 	}
@@ -499,6 +493,8 @@ func newStepExecutor(ctx context.Context, cancel context.CancelFunc, deployment 
 		ctx:             ctx,
 		cancel:          cancel,
 	}
+
+	exec.sawError.Store(false)
 
 	// If we're being asked to run as parallel as possible, spawn a single worker that launches chain executions
 	// asynchronously.

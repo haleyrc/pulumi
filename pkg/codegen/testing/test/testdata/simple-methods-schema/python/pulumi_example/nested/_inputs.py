@@ -28,9 +28,7 @@ class Baz:
              _setter: Callable[[Any, Any], None],
              hello: Optional[str] = None,
              world: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if hello is not None:
             _setter("hello", hello)
         if world is not None:

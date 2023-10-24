@@ -27,9 +27,7 @@ class ProviderArgs:
     def _configure(
              _setter: Callable[[Any, Any], None],
              certmanager: Optional[pulumi.Input['ProviderCertmanagerArgs']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if certmanager is not None:
             _setter("certmanager", certmanager)
 

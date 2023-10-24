@@ -129,17 +129,8 @@ func (c *converter) ConvertState(ctx context.Context, req *ConvertStateRequest) 
 		}
 	}
 
-	// Translate the rpc diagnostics into hcl.Diagnostics.
-	var diags hcl.Diagnostics
-	for _, rpcDiag := range resp.Diagnostics {
-		diags = append(diags, RPCDiagnosticToHclDiagnostic(rpcDiag))
-	}
-
 	logging.V(7).Infof("%s success", label)
-	return &ConvertStateResponse{
-		Resources:   resources,
-		Diagnostics: diags,
-	}, nil
+	return &ConvertStateResponse{Resources: resources}, nil
 }
 
 func (c *converter) ConvertProgram(ctx context.Context, req *ConvertProgramRequest) (*ConvertProgramResponse, error) {

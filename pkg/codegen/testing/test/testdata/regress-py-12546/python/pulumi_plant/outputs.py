@@ -35,9 +35,7 @@ class Container(dict):
              brightness: Optional['ContainerBrightness'] = None,
              color: Optional[str] = None,
              material: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if size is None:
             size = 4
         _setter("size", size)

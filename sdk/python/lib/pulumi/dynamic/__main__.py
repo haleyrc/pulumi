@@ -15,7 +15,6 @@
 import asyncio
 import base64
 from concurrent import futures
-from threading import Event
 import sys
 import time
 
@@ -201,7 +200,8 @@ def main():
     server.start()
     sys.stdout.buffer.write(f"{port}\n".encode())
     try:
-        Event().wait()
+        while True:
+            time.sleep(_ONE_DAY_IN_SECONDS)
     except KeyboardInterrupt:
         server.stop(0)
 

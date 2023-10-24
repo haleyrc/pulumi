@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
@@ -116,8 +115,6 @@ func (c object) decrypt(ctx context.Context, path resource.PropertyPath, decrypt
 			vs[k] = pv
 		}
 		return NewPlaintext(vs), nil
-	case nil:
-		return Plaintext{}, nil
 	default:
 		contract.Failf("unexpected value of type %T", v)
 		return Plaintext{}, nil
@@ -462,8 +459,6 @@ func unmarshalObject(v any) (object, error) {
 		return newObject(v), nil
 	case string:
 		return newObject(v), nil
-	case time.Time:
-		return newObject(v.String()), nil
 	case map[string]any:
 		if ok, ciphertext := isSecureValue(v); ok {
 			return newSecureObject(ciphertext), nil
@@ -493,8 +488,6 @@ func unmarshalObject(v any) (object, error) {
 			a[i] = sv
 		}
 		return newObject(a), nil
-	case nil:
-		return object{}, nil
 	default:
 		contract.Failf("unexpected wire type %T", v)
 		return object{}, nil
@@ -522,36 +515,4 @@ func isSecureValue(v any) (bool, string) {
 		}
 	}
 	return false, ""
-}
-
-func (c object) toDecryptedPropertyValue(decrypter Decrypter) resource.PropertyValue {
-	var prop resource.PropertyValue
-	switch v := c.value.(type) {
-	case bool, int64, float64, string:
-		if c.secure {
-			plaintext, err := decrypter.DecryptValue(context.Background(), v.(string))
-			contract.AssertNoErrorf(err, "failed to decrypt config")
-			prop = resource.NewPropertyValue(plaintext)
-		} else {
-			prop = resource.NewPropertyValue(v)
-		}
-	case []object:
-		var values []resource.PropertyValue
-		for _, v := range v {
-			values = append(values, v.toDecryptedPropertyValue(decrypter))
-		}
-		prop = resource.NewArrayProperty(values)
-	case map[string]object:
-		values := make(resource.PropertyMap)
-		for k, v := range v {
-			values[resource.PropertyKey(k)] = v.toDecryptedPropertyValue(decrypter)
-		}
-		prop = resource.NewObjectProperty(values)
-	default:
-		contract.Failf("unexpected value type %T", v)
-	}
-	if c.secure {
-		prop = resource.MakeSecret(prop)
-	}
-	return prop
 }

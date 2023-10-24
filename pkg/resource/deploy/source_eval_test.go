@@ -120,7 +120,6 @@ func newProviderEvent(pkg, name string, inputs resource.PropertyMap, parent reso
 	}
 	goal := &resource.Goal{
 		Type:       providers.MakeProviderType(tokens.Package(pkg)),
-		ID:         "id",
 		Name:       tokens.QName(name),
 		Custom:     true,
 		Properties: inputs,
@@ -214,13 +213,13 @@ func TestRegisterNoDefaultProviders(t *testing.T) {
 	ctx, err := newTestPluginContext(t, fixedProgram(steps))
 	assert.NoError(t, err)
 
-	iter, err := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, &testProviderSource{})
-	assert.NoError(t, err)
+	iter, res := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, &testProviderSource{})
+	assert.Nil(t, res)
 
 	processed := 0
 	for {
-		event, err := iter.Next()
-		assert.NoError(t, err)
+		event, res := iter.Next()
+		assert.Nil(t, res)
 
 		if event == nil {
 			break
@@ -297,13 +296,13 @@ func TestRegisterDefaultProviders(t *testing.T) {
 	ctx, err := newTestPluginContext(t, fixedProgram(steps))
 	assert.NoError(t, err)
 
-	iter, err := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, &testProviderSource{})
-	assert.NoError(t, err)
+	iter, res := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, &testProviderSource{})
+	assert.Nil(t, res)
 
 	processed, defaults := 0, make(map[string]struct{})
 	for {
-		event, err := iter.Next()
-		assert.NoError(t, err)
+		event, res := iter.Next()
+		assert.Nil(t, res)
 
 		if event == nil {
 			break
@@ -410,13 +409,13 @@ func TestReadInvokeNoDefaultProviders(t *testing.T) {
 	ctx, err := newTestPluginContext(t, program)
 	assert.NoError(t, err)
 
-	iter, err := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, providerSource)
-	assert.NoError(t, err)
+	iter, res := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, providerSource)
+	assert.Nil(t, res)
 
 	reads := 0
 	for {
-		event, err := iter.Next()
-		assert.NoError(t, err)
+		event, res := iter.Next()
+		assert.Nil(t, res)
 		if event == nil {
 			break
 		}
@@ -485,13 +484,13 @@ func TestReadInvokeDefaultProviders(t *testing.T) {
 
 	providerSource := &testProviderSource{providers: make(map[providers.Reference]plugin.Provider)}
 
-	iter, err := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, providerSource)
-	assert.NoError(t, err)
+	iter, res := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, providerSource)
+	assert.Nil(t, res)
 
 	reads, registers := 0, 0
 	for {
-		event, err := iter.Next()
-		assert.NoError(t, err)
+		event, res := iter.Next()
+		assert.Nil(t, res)
 
 		if event == nil {
 			break
@@ -662,12 +661,12 @@ func TestDisableDefaultProviders(t *testing.T) {
 			ctx, err := newTestPluginContext(t, program)
 			assert.NoError(t, err)
 
-			iter, err := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, providerSource)
-			assert.NoError(t, err)
+			iter, res := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, providerSource)
+			assert.Nil(t, res)
 
 			for {
-				event, err := iter.Next()
-				assert.NoError(t, err)
+				event, res := iter.Next()
+				assert.Nil(t, res)
 				if event == nil {
 					break
 				}
@@ -683,7 +682,7 @@ func TestDisableDefaultProviders(t *testing.T) {
 				case RegisterResourceEvent:
 					urn := newURN(event.Goal().Type, string(event.Goal().Name), event.Goal().Parent)
 					event.Done(&RegisterResult{
-						State: resource.NewState(event.Goal().Type, urn, true, false, "id", event.Goal().Properties,
+						State: resource.NewState(event.Goal().Type, urn, true, false, event.Goal().ID, event.Goal().Properties,
 							resource.PropertyMap{}, event.Goal().Parent, false, false, event.Goal().Dependencies, nil,
 							event.Goal().Provider, nil, false, nil, nil, nil, "", false, "", nil, nil, ""),
 					})
@@ -897,16 +896,12 @@ func TestResouceMonitor_remoteComponentResourceOptions(t *testing.T) {
 				switch ev := ev.(type) {
 				case RegisterResourceEvent:
 					goal := ev.Goal()
-					id := goal.ID
-					if id == "" {
-						id = "id"
-					}
 					ev.Done(&RegisterResult{
 						State: &resource.State{
 							Type:         goal.Type,
 							URN:          newURN(goal.Type, string(goal.Name), goal.Parent),
 							Custom:       goal.Custom,
-							ID:           id,
+							ID:           goal.ID,
 							Inputs:       goal.Properties,
 							Parent:       goal.Parent,
 							Dependencies: goal.Dependencies,
@@ -979,12 +974,12 @@ func TestResouceMonitor_remoteComponentResourceOptions(t *testing.T) {
 
 // 	providerSource := &testProviderSource{providers: make(map[providers.Reference]plugin.Provider)}
 
-// 	iter, err := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, providerSource)
-// 	assert.NoError(t, err)
+// 	iter, res := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, providerSource)
+// 	assert.Nil(t, res)
 // 	registrations, reads := 0, 0
 // 	for {
-// 		event, err := iter.Next()
-// 		assert.NoError(t, err)
+// 		event, res := iter.Next()
+// 		assert.Nil(t, res)
 
 // 		if event == nil {
 // 			break
@@ -1069,12 +1064,12 @@ func TestResouceMonitor_remoteComponentResourceOptions(t *testing.T) {
 
 // 	providerSource := &testProviderSource{providers: make(map[providers.Reference]plugin.Provider)}
 
-// 	iter, err := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, providerSource)
-// 	assert.NoError(t, err)
+// 	iter, res := NewEvalSource(ctx, runInfo, nil, false).Iterate(context.Background(), Options{}, providerSource)
+// 	assert.Nil(t, res)
 // 	registered181, registered182 := false, false
 // 	for {
-// 		event, err := iter.Next()
-// 		assert.NoError(t, err)
+// 		event, res := iter.Next()
+// 		assert.Nil(t, res)
 
 // 		if event == nil {
 // 			break

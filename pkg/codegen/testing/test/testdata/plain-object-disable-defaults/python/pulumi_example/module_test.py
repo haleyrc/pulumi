@@ -32,9 +32,7 @@ class ModuleTestArgs:
              _setter: Callable[[Any, Any], None],
              mod1: Optional[pulumi.Input['_mod1.TypArgs']] = None,
              val: Optional[pulumi.Input['TypArgs']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if mod1 is not None:
             _setter("mod1", mod1)
         if val is not None:

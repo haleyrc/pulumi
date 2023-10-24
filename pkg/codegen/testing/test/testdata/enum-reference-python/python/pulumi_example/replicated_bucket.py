@@ -28,14 +28,8 @@ class ReplicatedBucketArgs:
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             destination_region: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if destination_region is None and 'destinationRegion' in kwargs:
-            destination_region = kwargs['destinationRegion']
-        if destination_region is None:
-            raise TypeError("Missing 'destination_region' argument")
-
+             destination_region: pulumi.Input[str],
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("destination_region", destination_region)
 
     @property

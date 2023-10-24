@@ -335,8 +335,9 @@ func TestEnums(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // needs to set plugin acquisition env var
 func TestImportResourceRef(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		schemaFile string
@@ -396,11 +397,10 @@ func TestImportResourceRef(t *testing.T) {
 			},
 		},
 	}
-	//nolint:paralleltest // needs to set plugin acquisition env var
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Setenv("PULUMI_DISABLE_AUTOMATIC_PLUGIN_ACQUISITION", "false")
+			t.Parallel()
 
 			// Read in, decode, and import the schema.
 			schemaBytes, err := os.ReadFile(

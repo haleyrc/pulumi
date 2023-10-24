@@ -95,8 +95,9 @@ var PulumiPulumiSDKTests = []*SDKTest{
 		SkipCompileCheck: codegen.NewStringSet(golang),
 	},
 	{
-		Directory:   "nested-module",
-		Description: "Nested module",
+		Directory:        "nested-module",
+		Description:      "Nested module",
+		SkipCompileCheck: codegen.NewStringSet(dotnet),
 	},
 	{
 		Directory:   "simplified-invokes",
@@ -104,8 +105,9 @@ var PulumiPulumiSDKTests = []*SDKTest{
 		Skip:        codegen.NewStringSet("python/any", "go/any"),
 	},
 	{
-		Directory:   "nested-module-thirdparty",
-		Description: "Third-party nested module",
+		Directory:        "nested-module-thirdparty",
+		Description:      "Third-party nested module",
+		SkipCompileCheck: codegen.NewStringSet(dotnet),
 	},
 	{
 		Directory:   "plain-schema-gh6957",
@@ -359,11 +361,6 @@ var PulumiPulumiSDKTests = []*SDKTest{
 	{
 		Directory:   "regress-py-14012",
 		Description: "Regresses https://github.com/pulumi/pulumi/issues/14012",
-		Skip:        allLanguages.Except("python/any"),
-	},
-	{
-		Directory:   "configure-prop-names",
-		Description: "Checks that python _configure handles camelcased and snakecased prop names correctly",
 		Skip:        allLanguages.Except("python/any"),
 	},
 }

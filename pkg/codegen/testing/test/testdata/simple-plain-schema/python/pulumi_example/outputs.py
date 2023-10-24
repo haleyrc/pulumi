@@ -34,21 +34,13 @@ class Foo(dict):
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             a: Optional[bool] = None,
-             c: Optional[int] = None,
-             e: Optional[str] = None,
+             a: bool,
+             c: int,
+             e: str,
              b: Optional[bool] = None,
              d: Optional[int] = None,
              f: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if a is None:
-            raise TypeError("Missing 'a' argument")
-        if c is None:
-            raise TypeError("Missing 'c' argument")
-        if e is None:
-            raise TypeError("Missing 'e' argument")
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("a", a)
         _setter("c", c)
         _setter("e", e)

@@ -52,15 +52,7 @@ class SsisEnvironmentReferenceResponse(dict):
              environment_name: Optional[str] = None,
              id: Optional[float] = None,
              reference_type: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if environment_folder_name is None and 'environmentFolderName' in kwargs:
-            environment_folder_name = kwargs['environmentFolderName']
-        if environment_name is None and 'environmentName' in kwargs:
-            environment_name = kwargs['environmentName']
-        if reference_type is None and 'referenceType' in kwargs:
-            reference_type = kwargs['referenceType']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if environment_folder_name is not None:
             _setter("environment_folder_name", environment_folder_name)
         if environment_name is not None:
@@ -137,19 +129,13 @@ class SsisEnvironmentResponse(dict):
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             type: Optional[str] = None,
+             type: str,
              description: Optional[str] = None,
              folder_id: Optional[float] = None,
              id: Optional[float] = None,
              name: Optional[str] = None,
              variables: Optional[Sequence['outputs.SsisVariableResponse']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if type is None:
-            raise TypeError("Missing 'type' argument")
-        if folder_id is None and 'folderId' in kwargs:
-            folder_id = kwargs['folderId']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("type", 'Environment')
         if description is not None:
             _setter("description", description)
@@ -240,15 +226,11 @@ class SsisFolderResponse(dict):
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             type: Optional[str] = None,
+             type: str,
              description: Optional[str] = None,
              id: Optional[float] = None,
              name: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if type is None:
-            raise TypeError("Missing 'type' argument")
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("type", 'Folder')
         if description is not None:
             _setter("description", description)
@@ -331,7 +313,7 @@ class SsisPackageResponse(dict):
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             type: Optional[str] = None,
+             type: str,
              description: Optional[str] = None,
              folder_id: Optional[float] = None,
              id: Optional[float] = None,
@@ -339,17 +321,7 @@ class SsisPackageResponse(dict):
              parameters: Optional[Sequence['outputs.SsisParameterResponse']] = None,
              project_id: Optional[float] = None,
              project_version: Optional[float] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if type is None:
-            raise TypeError("Missing 'type' argument")
-        if folder_id is None and 'folderId' in kwargs:
-            folder_id = kwargs['folderId']
-        if project_id is None and 'projectId' in kwargs:
-            project_id = kwargs['projectId']
-        if project_version is None and 'projectVersion' in kwargs:
-            project_version = kwargs['projectVersion']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("type", 'Package')
         if description is not None:
             _setter("description", description)
@@ -495,21 +467,7 @@ class SsisParameterResponse(dict):
              value_set: Optional[bool] = None,
              value_type: Optional[str] = None,
              variable: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if data_type is None and 'dataType' in kwargs:
-            data_type = kwargs['dataType']
-        if default_value is None and 'defaultValue' in kwargs:
-            default_value = kwargs['defaultValue']
-        if design_default_value is None and 'designDefaultValue' in kwargs:
-            design_default_value = kwargs['designDefaultValue']
-        if sensitive_default_value is None and 'sensitiveDefaultValue' in kwargs:
-            sensitive_default_value = kwargs['sensitiveDefaultValue']
-        if value_set is None and 'valueSet' in kwargs:
-            value_set = kwargs['valueSet']
-        if value_type is None and 'valueType' in kwargs:
-            value_type = kwargs['valueType']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if data_type is not None:
             _setter("data_type", data_type)
         if default_value is not None:
@@ -672,7 +630,7 @@ class SsisProjectResponse(dict):
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             type: Optional[str] = None,
+             type: str,
              description: Optional[str] = None,
              environment_refs: Optional[Sequence['outputs.SsisEnvironmentReferenceResponse']] = None,
              folder_id: Optional[float] = None,
@@ -680,15 +638,7 @@ class SsisProjectResponse(dict):
              name: Optional[str] = None,
              parameters: Optional[Sequence['outputs.SsisParameterResponse']] = None,
              version: Optional[float] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if type is None:
-            raise TypeError("Missing 'type' argument")
-        if environment_refs is None and 'environmentRefs' in kwargs:
-            environment_refs = kwargs['environmentRefs']
-        if folder_id is None and 'folderId' in kwargs:
-            folder_id = kwargs['folderId']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("type", 'Project')
         if description is not None:
             _setter("description", description)
@@ -814,13 +764,7 @@ class SsisVariableResponse(dict):
              sensitive: Optional[bool] = None,
              sensitive_value: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if data_type is None and 'dataType' in kwargs:
-            data_type = kwargs['dataType']
-        if sensitive_value is None and 'sensitiveValue' in kwargs:
-            sensitive_value = kwargs['sensitiveValue']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if data_type is not None:
             _setter("data_type", data_type)
         if description is not None:
@@ -920,25 +864,11 @@ class StorageAccountKeyResponse(dict):
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             creation_time: Optional[str] = None,
-             key_name: Optional[str] = None,
-             permissions: Optional[str] = None,
-             value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if creation_time is None and 'creationTime' in kwargs:
-            creation_time = kwargs['creationTime']
-        if creation_time is None:
-            raise TypeError("Missing 'creation_time' argument")
-        if key_name is None and 'keyName' in kwargs:
-            key_name = kwargs['keyName']
-        if key_name is None:
-            raise TypeError("Missing 'key_name' argument")
-        if permissions is None:
-            raise TypeError("Missing 'permissions' argument")
-        if value is None:
-            raise TypeError("Missing 'value' argument")
-
+             creation_time: str,
+             key_name: str,
+             permissions: str,
+             value: str,
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("creation_time", creation_time)
         _setter("key_name", key_name)
         _setter("permissions", permissions)

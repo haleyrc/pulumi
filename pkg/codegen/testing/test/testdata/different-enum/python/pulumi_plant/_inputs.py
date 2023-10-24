@@ -31,15 +31,11 @@ class ContainerArgs:
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             size: Optional[pulumi.Input['ContainerSize']] = None,
+             size: pulumi.Input['ContainerSize'],
              brightness: Optional[pulumi.Input['ContainerBrightness']] = None,
              color: Optional[pulumi.Input[Union['ContainerColor', str]]] = None,
              material: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if size is None:
-            raise TypeError("Missing 'size' argument")
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("size", size)
         if brightness is None:
             brightness = 1

@@ -42,11 +42,7 @@ class Bar(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              has_a_hyphen: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if has_a_hyphen is None and 'has-a-hyphen' in kwargs:
-            has_a_hyphen = kwargs['has-a-hyphen']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if has_a_hyphen is not None:
             _setter("has_a_hyphen", has_a_hyphen)
 

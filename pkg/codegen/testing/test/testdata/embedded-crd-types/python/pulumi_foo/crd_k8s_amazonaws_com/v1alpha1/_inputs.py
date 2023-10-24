@@ -28,11 +28,7 @@ class ENIConfigSpecArgs:
              _setter: Callable[[Any, Any], None],
              security_groups: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              subnet: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if security_groups is None and 'securityGroups' in kwargs:
-            security_groups = kwargs['securityGroups']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if security_groups is not None:
             _setter("security_groups", security_groups)
         if subnet is not None:

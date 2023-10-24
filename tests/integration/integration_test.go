@@ -494,13 +494,11 @@ func TestConfigPaths(t *testing.T) {
 		"root[",
 		`root["nested]`,
 		"root.array[abc]",
-		"root.[0]",
+		"root.[1]",
 
 		// First path segment must be a non-empty string.
 		`[""]`,
 		"[0]",
-		".foo",
-		".[0]",
 
 		// Index out of range.
 		"names[-1]",

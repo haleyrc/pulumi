@@ -658,7 +658,6 @@ func TestProvider_ConfigureDeleteRace(t *testing.T) {
 			resource.NewURN("org/proj/dev", "foo", "", "bar:baz", "qux"),
 			"whatever",
 			props,
-			props,
 			1000,
 		)
 		assert.NoError(t, err, "Delete failed")

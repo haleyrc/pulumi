@@ -35,9 +35,7 @@ class CompositePathResponse(dict):
              _setter: Callable[[Any, Any], None],
              order: Optional[str] = None,
              path: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if order is not None:
             _setter("order", order)
         if path is not None:
@@ -96,11 +94,7 @@ class IndexingPolicyResponse(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              composite_indexes: Optional[Sequence[Sequence['outputs.CompositePathResponse']]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if composite_indexes is None and 'compositeIndexes' in kwargs:
-            composite_indexes = kwargs['compositeIndexes']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if composite_indexes is not None:
             _setter("composite_indexes", composite_indexes)
 
@@ -145,11 +139,7 @@ class SqlContainerGetPropertiesResponseResource(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              indexing_policy: Optional['outputs.IndexingPolicyResponse'] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if indexing_policy is None and 'indexingPolicy' in kwargs:
-            indexing_policy = kwargs['indexingPolicy']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if indexing_policy is not None:
             _setter("indexing_policy", indexing_policy)
 

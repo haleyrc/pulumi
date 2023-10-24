@@ -580,10 +580,6 @@ type Environment struct {
 	node    *yaml.Node
 }
 
-func NewEnvironment(envs []string) *Environment {
-	return &Environment{envs: envs}
-}
-
 func (e Environment) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.message)
 }
@@ -596,9 +592,6 @@ func (e *Environment) UnmarshalJSON(b []byte) error {
 }
 
 func (e Environment) MarshalYAML() (any, error) {
-	if e.node == nil {
-		return e.envs, nil
-	}
 	return e.node, nil
 }
 

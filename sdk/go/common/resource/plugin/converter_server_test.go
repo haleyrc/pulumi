@@ -43,14 +43,6 @@ func (c *testConverter) ConvertState(
 		return nil, fmt.Errorf("unexpected MapperTarget: %s", req.MapperTarget)
 	}
 
-	diags := hcl.Diagnostics{
-		{
-			Severity: hcl.DiagError,
-			Summary:  "test:summary",
-			Detail:   "test:detail",
-		},
-	}
-
 	return &ConvertStateResponse{
 		Resources: []ResourceImport{
 			{
@@ -61,7 +53,6 @@ func (c *testConverter) ConvertState(
 				PluginDownloadURL: "test:pluginDownloadURL",
 			},
 		},
-		Diagnostics: diags,
 	}, nil
 }
 
@@ -110,11 +101,6 @@ func TestConverterServer_State(t *testing.T) {
 	assert.Equal(t, "test:id", res.Id)
 	assert.Equal(t, "test:version", res.Version)
 	assert.Equal(t, "test:pluginDownloadURL", res.PluginDownloadURL)
-
-	diag := resp.Diagnostics[0]
-	assert.Equal(t, codegenrpc.DiagnosticSeverity_DIAG_ERROR, diag.Severity)
-	assert.Equal(t, "test:summary", diag.Summary)
-	assert.Equal(t, "test:detail", diag.Detail)
 }
 
 func TestConverterServer_Program(t *testing.T) {

@@ -74,8 +74,8 @@ func TestSimpleAnalyzer(t *testing.T) {
 	}
 
 	project := p.GetProject()
-	_, err := TestOp(Update).Run(project, p.GetTarget(t, nil), p.Options, false, p.BackendClient, nil)
-	assert.NoError(t, err)
+	_, res := TestOp(Update).Run(project, p.GetTarget(t, nil), p.Options, false, p.BackendClient, nil)
+	assert.Nil(t, res)
 }
 
 func TestSimpleAnalyzeResourceFailure(t *testing.T) {
@@ -118,8 +118,8 @@ func TestSimpleAnalyzeResourceFailure(t *testing.T) {
 	}
 
 	project := p.GetProject()
-	_, err := TestOp(Update).Run(project, p.GetTarget(t, nil), p.Options, false, p.BackendClient, nil)
-	assert.Error(t, err)
+	_, res := TestOp(Update).Run(project, p.GetTarget(t, nil), p.Options, false, p.BackendClient, nil)
+	assert.NotNil(t, res)
 }
 
 func TestSimpleAnalyzeStackFailure(t *testing.T) {
@@ -162,8 +162,8 @@ func TestSimpleAnalyzeStackFailure(t *testing.T) {
 	}
 
 	project := p.GetProject()
-	_, err := TestOp(Update).Run(project, p.GetTarget(t, nil), p.Options, false, p.BackendClient, nil)
-	assert.Error(t, err)
+	_, res := TestOp(Update).Run(project, p.GetTarget(t, nil), p.Options, false, p.BackendClient, nil)
+	assert.NotNil(t, res)
 }
 
 // TestResourceRemediation tests a very simple sequence of remediations. We register two, to ensure that
@@ -224,10 +224,10 @@ func TestResourceRemediation(t *testing.T) {
 	}
 
 	project := p.GetProject()
-	snap, err := TestOp(Update).Run(project, p.GetTarget(t, nil), p.Options, false, p.BackendClient, nil)
+	snap, res := TestOp(Update).Run(project, p.GetTarget(t, nil), p.Options, false, p.BackendClient, nil)
 
 	// Expect no error, valid snapshot, two resources:
-	assert.Nil(t, err)
+	assert.Nil(t, res)
 	assert.NotNil(t, snap)
 	assert.Equal(t, 2, len(snap.Resources)) // stack plus pkA:m:typA
 
@@ -281,10 +281,10 @@ func TestRemediationDiagnostic(t *testing.T) {
 	}
 
 	project := p.GetProject()
-	snap, err := TestOp(Update).Run(project, p.GetTarget(t, nil), p.Options, false, p.BackendClient, nil)
+	snap, res := TestOp(Update).Run(project, p.GetTarget(t, nil), p.Options, false, p.BackendClient, nil)
 
 	// Expect no error, valid snapshot, two resources:
-	assert.NoError(t, err)
+	assert.Nil(t, res)
 	assert.NotNil(t, snap)
 	assert.Equal(t, 2, len(snap.Resources)) // stack plus pkA:m:typA
 }

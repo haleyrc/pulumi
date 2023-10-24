@@ -61,8 +61,3 @@ type Options struct {
 	term                terminal.Terminal
 	deterministicOutput bool
 }
-
-func (opts Options) WithIsInteractive(isInteractive bool) Options {
-	opts.IsInteractive = isInteractive
-	return opts
-}

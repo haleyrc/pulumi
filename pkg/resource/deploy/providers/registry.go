@@ -334,8 +334,8 @@ func (r *Registry) Check(urn resource.URN, olds, news resource.PropertyMap,
 		return nil, failures, err
 	}
 
-	// Create a provider reference using the URN and the unconfigured ID and register the provider.
-	r.setProvider(mustNewReference(urn, UnconfiguredID), provider)
+	// Create a provider reference using the URN and the unknown ID and register the provider.
+	r.setProvider(mustNewReference(urn, UnknownID), provider)
 
 	return inputs, nil, nil
 }
@@ -362,10 +362,10 @@ func (r *Registry) Diff(urn resource.URN, id resource.ID, oldInputs, oldOutputs,
 	logging.V(7).Infof("%s: executing (#oldInputs=%d#oldOutputs=%d,#newInputs=%d)",
 		label, len(oldInputs), len(oldOutputs), len(newInputs))
 
-	// Create a reference using the URN and the unconfigured ID and fetch the provider.
-	provider, ok := r.GetProvider(mustNewReference(urn, UnconfiguredID))
+	// Create a reference using the URN and the unknown ID and fetch the provider.
+	provider, ok := r.GetProvider(mustNewReference(urn, UnknownID))
 	if !ok {
-		// If the provider was not found in the registry under its URN and the unconfigured ID, then it must have not have
+		// If the provider was not found in the registry under its URN and the Unknown ID, then it must have not have
 		// been subject to a call to `Check`. This can happen when we are diffing a provider's inputs as part of
 		// evaluating the fanout of a delete-before-replace operation. In this case, we can just use the old provider
 		// (which we should have loaded during diff search), and we will not unload it.
@@ -419,34 +419,25 @@ func (r *Registry) Same(res *resource.State) error {
 		return nil
 	}
 
-	// We may have started this provider up for Check/Diff, but then decided to Same it, if so we can just
-	// reuse that instance, but as we're now configuring it remove the unconfigured ID from the provider map
-	// so nothing else tries to use it.
-	provider, ok := r.deleteProvider(mustNewReference(urn, UnconfiguredID))
-	if !ok {
-		// Else we need to load it fresh
-		providerPkg := GetProviderPackage(urn.Type())
+	providerPkg := GetProviderPackage(urn.Type())
 
-		// Parse the provider version, then load, configure, and register the provider.
-		version, err := GetProviderVersion(res.Inputs)
-		if err != nil {
-			return fmt.Errorf("parse version for %v provider '%v': %v", providerPkg, urn, err)
-		}
-		downloadURL, err := GetProviderDownloadURL(res.Inputs)
-		if err != nil {
-			return fmt.Errorf("parse download URL for %v provider '%v': %v", providerPkg, urn, err)
-		}
-		// TODO: We should thread checksums through here.
-		provider, err = loadProvider(providerPkg, version, downloadURL, nil, r.host, r.builtins)
-		if err != nil {
-			return fmt.Errorf("load plugin for %v provider '%v': %v", providerPkg, urn, err)
-		}
-		if provider == nil {
-			return fmt.Errorf("find plugin for %v provider '%v' at version %v", providerPkg, urn, version)
-		}
+	// Parse the provider version, then load, configure, and register the provider.
+	version, err := GetProviderVersion(res.Inputs)
+	if err != nil {
+		return fmt.Errorf("parse version for %v provider '%v': %v", providerPkg, urn, err)
 	}
-	contract.Assertf(provider != nil, "provider must not be nil")
-
+	downloadURL, err := GetProviderDownloadURL(res.Inputs)
+	if err != nil {
+		return fmt.Errorf("parse download URL for %v provider '%v': %v", providerPkg, urn, err)
+	}
+	// TODO: We should thread checksums through here.
+	provider, err := loadProvider(providerPkg, version, downloadURL, nil, r.host, r.builtins)
+	if err != nil {
+		return fmt.Errorf("load plugin for %v provider '%v': %v", providerPkg, urn, err)
+	}
+	if provider == nil {
+		return fmt.Errorf("find plugin for %v provider '%v' at version %v", providerPkg, urn, version)
+	}
 	if err := provider.Configure(res.Inputs); err != nil {
 		closeErr := r.host.CloseProvider(provider)
 		contract.IgnoreError(closeErr)
@@ -460,7 +451,7 @@ func (r *Registry) Same(res *resource.State) error {
 	return nil
 }
 
-// Create configures the provider with the given URN using the indicated configuration, assigns it an ID, and
+// Create coonfigures the provider with the given URN using the indicated configuration, assigns it an ID, and
 // registers it under the assigned (URN, ID).
 //
 // The provider must have been loaded by a prior call to Check.
@@ -470,43 +461,15 @@ func (r *Registry) Create(urn resource.URN, news resource.PropertyMap, timeout f
 	label := fmt.Sprintf("%s.Create(%s)", r.label(), urn)
 	logging.V(7).Infof("%s executing (#news=%v)", label, len(news))
 
-	// Fetch the unconfigured provider, configure it, and register it under a new ID. We remove the
-	// unconfigured ID from the provider map so nothing else tries to use and re-configure this instance.
-	provider, ok := r.deleteProvider(mustNewReference(urn, UnconfiguredID))
-	if !ok {
-		// The unconfigured provider may have been Same'd after Check and this provider could be a replacement create.
-		// In which case we need to start up a fresh copy.
-
-		providerPkg := GetProviderPackage(urn.Type())
-
-		// Parse the provider version, then load, configure, and register the provider.
-		version, err := GetProviderVersion(news)
-		if err != nil {
-			return "", nil, resource.StatusUnknown,
-				fmt.Errorf("parse version for %v provider '%v': %v", providerPkg, urn, err)
-		}
-		downloadURL, err := GetProviderDownloadURL(news)
-		if err != nil {
-			return "", nil, resource.StatusUnknown,
-				fmt.Errorf("parse download URL for %v provider '%v': %v", providerPkg, urn, err)
-		}
-		// TODO: We should thread checksums through here.
-		provider, err = loadProvider(providerPkg, version, downloadURL, nil, r.host, r.builtins)
-		if err != nil {
-			return "", nil, resource.StatusUnknown,
-				fmt.Errorf("load plugin for %v provider '%v': %v", providerPkg, urn, err)
-		}
-		if provider == nil {
-			return "", nil, resource.StatusUnknown,
-				fmt.Errorf("find plugin for %v provider '%v' at version %v", providerPkg, urn, version)
-		}
-	}
+	// Fetch the unconfigured provider, configure it, and register it under a new ID.
+	provider, ok := r.GetProvider(mustNewReference(urn, UnknownID))
+	contract.Assertf(ok, "'Check' must be called before 'Create' (%v)", urn)
 
 	if err := provider.Configure(news); err != nil {
 		return "", nil, resource.StatusOK, err
 	}
 
-	id := resource.ID(UnknownID)
+	var id resource.ID
 	if !preview {
 		// generate a new uuid
 		uuid, err := uuid.NewV4()
@@ -533,9 +496,8 @@ func (r *Registry) Update(urn resource.URN, id resource.ID,
 	logging.V(7).Infof("%s: executing (#oldInputs=%d#oldOutputs=%d,#newInputs=%d)",
 		label, len(oldInputs), len(oldOutputs), len(newInputs))
 
-	// Fetch the unconfigured provider, configure it, and register it under a new ID. We remove the
-	// unconfigured ID from the provider map so nothing else tries to use and re-configure this instance.
-	provider, ok := r.deleteProvider(mustNewReference(urn, UnconfiguredID))
+	// Fetch the unconfigured provider and configure it.
+	provider, ok := r.GetProvider(mustNewReference(urn, UnknownID))
 	contract.Assertf(ok, "'Check' and 'Diff' must be called before 'Update' (%v)", urn)
 
 	if err := provider.Configure(newInputs); err != nil {
@@ -549,7 +511,7 @@ func (r *Registry) Update(urn resource.URN, id resource.ID,
 
 // Delete unregisters and unloads the provider with the given URN and ID. If the provider was never loaded
 // this is a no-op.
-func (r *Registry) Delete(urn resource.URN, id resource.ID, oldInputs, oldOutputs resource.PropertyMap,
+func (r *Registry) Delete(urn resource.URN, id resource.ID, props resource.PropertyMap,
 	timeout float64,
 ) (resource.Status, error) {
 	contract.Assertf(!r.isPreview, "Delete must not be called during preview")

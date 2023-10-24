@@ -17,6 +17,7 @@ import (
 	"github.com/pulumi/pulumi/pkg/v3/resource/deploy/providers"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/result"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 )
 
@@ -387,8 +388,8 @@ func validateRefreshDeleteCombination(t *testing.T, names []string, targets []st
 		{
 			Op: Refresh,
 			Validate: func(project workspace.Project, target deploy.Target, entries JournalEntries,
-				_ []Event, err error,
-			) error {
+				_ []Event, res result.Result,
+			) result.Result {
 				// Should see only refreshes.
 				for _, entry := range entries {
 					if len(refreshTargets) > 0 {
@@ -400,7 +401,7 @@ func validateRefreshDeleteCombination(t *testing.T, names []string, targets []st
 					assert.Equal(t, deploy.OpRefresh, entry.Step.Op())
 				}
 
-				return err
+				return res
 			},
 		},
 	}
@@ -562,8 +563,8 @@ func validateRefreshBasicsCombination(t *testing.T, names []string, targets []st
 	p.Steps = []TestStep{{
 		Op: Refresh,
 		Validate: func(project workspace.Project, target deploy.Target, entries JournalEntries,
-			_ []Event, err error,
-		) error {
+			_ []Event, res result.Result,
+		) result.Result {
 			// Should see only refreshes.
 			for _, entry := range entries {
 				if len(refreshTargets) > 0 {
@@ -607,7 +608,7 @@ func validateRefreshBasicsCombination(t *testing.T, names []string, targets []st
 					assert.Equal(t, old, new)
 				}
 			}
-			return err
+			return res
 		},
 	}}
 	snap := p.Run(t, old)
@@ -735,8 +736,8 @@ func TestCanceledRefresh(t *testing.T) {
 	}
 	project, target := p.GetProject(), p.GetTarget(t, old)
 	validate := func(project workspace.Project, target deploy.Target, entries JournalEntries,
-		_ []Event, err error,
-	) error {
+		_ []Event, res result.Result,
+	) result.Result {
 		for _, entry := range entries {
 			assert.Equal(t, deploy.OpRefresh, entry.Step.Op())
 			resultOp := entry.Step.(*deploy.RefreshStep).ResultOp()
@@ -771,11 +772,11 @@ func TestCanceledRefresh(t *testing.T) {
 				assert.Equal(t, old, new)
 			}
 		}
-		return err
+		return res
 	}
 
-	snap, err := op.RunWithContext(ctx, project, target, options, false, nil, validate)
-	assert.Error(t, err)
+	snap, res := op.RunWithContext(ctx, project, target, options, false, nil, validate)
+	assertIsErrorOrBailResult(t, res)
 	assert.Equal(t, 1, len(refreshed))
 
 	provURN := p.NewProviderURN("pkgA", "default", "")

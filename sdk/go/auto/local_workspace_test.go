@@ -1045,6 +1045,8 @@ func TestUpsertStackInlineSourceParallel(t *testing.T) {
 func TestNestedStackFails(t *testing.T) {
 	t.Parallel()
 
+	// FIXME: see https://github.com/pulumi/pulumi/issues/5301
+	t.Skip("skipping test, see pulumi/pulumi#5301")
 	testCtx := context.Background()
 	sName := randomStackName()
 	parentstackName := FullyQualifiedStackName(pulumiOrg, "parent", sName)
@@ -2086,7 +2088,7 @@ func TestMinimumVersion(t *testing.T) {
 				assert.Error(t, err)
 				assert.Regexp(t, tt.expectedError, err.Error())
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 			}
 		})
 	}
@@ -2110,9 +2112,9 @@ func TestProjectSettingsRespected(t *testing.T) {
 		assert.Nil(t, err, "failed to remove stack. Resources have leaked.")
 	}()
 
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	projectSettings, err := stack.workspace.ProjectSettings(ctx)
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, projectSettings.Name, tokens.PackageName("correct_project"))
 	assert.Equal(t, *projectSettings.Description, "This is a description")
 }

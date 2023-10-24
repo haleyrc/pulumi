@@ -26,9 +26,7 @@ class ProviderArgs:
     def _configure(
              _setter: Callable[[Any, Any], None],
              a: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if a is not None:
             _setter("a", a)
 

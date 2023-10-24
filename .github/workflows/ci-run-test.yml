@@ -71,7 +71,7 @@ env:
   PULUMI_TEST_USE_SERVICE: ${{ !contains(inputs.version, '-') }}
   PULUMI_TEST_PYTHON_SHARED_VENV: "true"
   # We're hitting a lot of github limits because of deploytest trying to auto install plugins, skip that for now.
-  PULUMI_DISABLE_AUTOMATIC_PLUGIN_ACQUISITION: "true"
+  DISABLE_AUTOMATIC_PLUGIN_ACQUISITION: "true"
   PYTHON: python
   GO_TEST_PARALLELISM: 8
   GO_TEST_PKG_PARALLELISM: 2
@@ -165,7 +165,7 @@ jobs:
           cache: pip
           cache-dependency-path: sdk/python/requirements.txt
       - name: Set up DotNet ${{ fromJson(inputs.version-set).dotnet }}
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@607fce577a46308457984d59e4954e075820f10a # v3.0.3
         with:
           dotnet-version: ${{ fromJson(inputs.version-set).dotnet }}
           dotnet-quality: ga

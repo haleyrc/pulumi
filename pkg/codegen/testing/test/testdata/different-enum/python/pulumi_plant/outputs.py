@@ -31,15 +31,11 @@ class Container(dict):
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             size: Optional['ContainerSize'] = None,
+             size: 'ContainerSize',
              brightness: Optional['ContainerBrightness'] = None,
              color: Optional[str] = None,
              material: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if size is None:
-            raise TypeError("Missing 'size' argument")
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("size", size)
         if brightness is None:
             brightness = 1

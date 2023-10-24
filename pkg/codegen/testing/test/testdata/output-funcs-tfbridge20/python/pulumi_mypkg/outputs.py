@@ -41,25 +41,11 @@ class StorageAccountKeyResponseResult(dict):
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             creation_time: Optional[str] = None,
-             key_name: Optional[str] = None,
-             permissions: Optional[str] = None,
-             value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if creation_time is None and 'creationTime' in kwargs:
-            creation_time = kwargs['creationTime']
-        if creation_time is None:
-            raise TypeError("Missing 'creation_time' argument")
-        if key_name is None and 'keyName' in kwargs:
-            key_name = kwargs['keyName']
-        if key_name is None:
-            raise TypeError("Missing 'key_name' argument")
-        if permissions is None:
-            raise TypeError("Missing 'permissions' argument")
-        if value is None:
-            raise TypeError("Missing 'value' argument")
-
+             creation_time: str,
+             key_name: str,
+             permissions: str,
+             value: str,
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("creation_time", creation_time)
         _setter("key_name", key_name)
         _setter("permissions", permissions)
@@ -111,15 +97,9 @@ class GetAmiIdsFilterResult(dict):
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             name: Optional[str] = None,
-             values: Optional[Sequence[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if name is None:
-            raise TypeError("Missing 'name' argument")
-        if values is None:
-            raise TypeError("Missing 'values' argument")
-
+             name: str,
+             values: Sequence[str],
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("name", name)
         _setter("values", values)
 

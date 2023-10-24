@@ -30,11 +30,7 @@ class TrailArgs:
              _setter: Callable[[Any, Any], None],
              advanced_event_selectors: Optional[pulumi.Input[Sequence[pulumi.Input['pulumi_aws.cloudtrail.TrailAdvancedEventSelectorArgs']]]] = None,
              trail: Optional[pulumi.Input['pulumi_aws.cloudtrail.Trail']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if advanced_event_selectors is None and 'advancedEventSelectors' in kwargs:
-            advanced_event_selectors = kwargs['advancedEventSelectors']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if advanced_event_selectors is not None:
             _setter("advanced_event_selectors", advanced_event_selectors)
         if trail is not None:

@@ -19,7 +19,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/pulumi/pulumi/sdk/v3/go/common/env"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/testing/diagtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,16 +29,10 @@ import (
 func TestEnsurePulumiMeta(t *testing.T) {
 	t.Parallel()
 
-	mkmap := func(value string) env.MapStore {
-		m := make(env.MapStore)
-		m[env.SelfManagedStateLegacyLayout.Var().Name()] = value
-		return m
-	}
-
 	tests := []struct {
 		desc string
 		give map[string]string // files in the bucket
-		env  env.MapStore      // environment variables
+		env  map[string]string // environment variables
 		want pulumiMeta
 	}{
 		{
@@ -52,14 +45,14 @@ func TestEnsurePulumiMeta(t *testing.T) {
 			// Use legacy mode even for the new bucket
 			// because the environment variable is "1".
 			desc: "empty/legacy",
-			env:  mkmap("1"),
+			env:  map[string]string{PulumiFilestateLegacyLayoutEnvVar: "1"},
 			want: pulumiMeta{Version: 0},
 		},
 		{
 			// Use legacy mode even for the new bucket
 			// because the environment variable is "true".
 			desc: "empty/legacy/true",
-			env:  mkmap("true"),
+			env:  map[string]string{PulumiFilestateLegacyLayoutEnvVar: "true"},
 			want: pulumiMeta{Version: 0},
 		},
 		{
@@ -67,7 +60,7 @@ func TestEnsurePulumiMeta(t *testing.T) {
 			// to "false".
 			// This is also the default behavior.
 			desc: "empty/legacy/false",
-			env:  mkmap("false"),
+			env:  map[string]string{PulumiFilestateLegacyLayoutEnvVar: "false"},
 			want: pulumiMeta{Version: 1},
 		},
 		{
@@ -115,7 +108,7 @@ func TestEnsurePulumiMeta(t *testing.T) {
 				require.NoError(t, b.WriteAll(ctx, name, []byte(body), nil))
 			}
 
-			state, err := ensurePulumiMeta(ctx, b, env.NewEnv(tt.env))
+			state, err := ensurePulumiMeta(ctx, b, mapGetenv(tt.env))
 			require.NoError(t, err)
 			assert.Equal(t, &tt.want, state)
 		})
@@ -156,7 +149,7 @@ func TestEnsurePulumiMeta_corruption(t *testing.T) {
 			ctx := context.Background()
 			require.NoError(t, b.WriteAll(ctx, ".pulumi/meta.yaml", []byte(tt.give), nil))
 
-			_, err := ensurePulumiMeta(context.Background(), b, env.NewEnv(nil))
+			_, err := ensurePulumiMeta(context.Background(), b, mapGetenv(nil))
 			assert.ErrorContains(t, err, tt.wantErr)
 		})
 	}
@@ -189,7 +182,7 @@ func TestMeta_roundTrip(t *testing.T) {
 			ctx := context.Background()
 			require.NoError(t, tt.give.WriteTo(ctx, b))
 
-			got, err := ensurePulumiMeta(ctx, b, env.NewEnv(nil))
+			got, err := ensurePulumiMeta(ctx, b, mapGetenv(nil))
 			require.NoError(t, err)
 			assert.Equal(t, &tt.give, got)
 		})

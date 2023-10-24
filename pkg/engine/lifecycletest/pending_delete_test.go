@@ -11,6 +11,7 @@ import (
 	"github.com/pulumi/pulumi/pkg/v3/resource/deploy/deploytest"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/result"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 )
 
@@ -60,8 +61,8 @@ func TestDestroyWithPendingDelete(t *testing.T) {
 	p.Steps = []TestStep{{
 		Op: Update,
 		Validate: func(_ workspace.Project, _ deploy.Target, entries JournalEntries,
-			_ []Event, err error,
-		) error {
+			_ []Event, res result.Result,
+		) result.Result {
 			// Verify that we see a DeleteReplacement for the resource with ID 0 and a Delete for the resource with
 			// ID 1.
 			deletedID0, deletedID1 := false, false
@@ -86,7 +87,7 @@ func TestDestroyWithPendingDelete(t *testing.T) {
 			assert.True(t, deletedID0)
 			assert.True(t, deletedID1)
 
-			return err
+			return res
 		},
 	}}
 	p.Run(t, old)
@@ -136,8 +137,8 @@ func TestUpdateWithPendingDelete(t *testing.T) {
 	p.Steps = []TestStep{{
 		Op: Destroy,
 		Validate: func(_ workspace.Project, _ deploy.Target, entries JournalEntries,
-			_ []Event, err error,
-		) error {
+			_ []Event, res result.Result,
+		) result.Result {
 			// Verify that we see a DeleteReplacement for the resource with ID 0 and a Delete for the resource with
 			// ID 1.
 			deletedID0, deletedID1 := false, false
@@ -162,7 +163,7 @@ func TestUpdateWithPendingDelete(t *testing.T) {
 			assert.True(t, deletedID0)
 			assert.True(t, deletedID1)
 
-			return err
+			return res
 		},
 	}}
 	p.Run(t, old)

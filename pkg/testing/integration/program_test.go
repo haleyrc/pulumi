@@ -47,14 +47,14 @@ func TestRunCommandLog(t *testing.T) {
 
 	args := []string{node, "-e", "console.log('output from node');"}
 	err = RunCommand(t, "node", args, tempdir, opts)
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 
 	matches, err := filepath.Glob(filepath.Join(tempdir, commandOutputFolderName, "node.*"))
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, 1, len(matches))
 
 	output, err := os.ReadFile(matches[0])
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, "output from node\n", string(output))
 }
 

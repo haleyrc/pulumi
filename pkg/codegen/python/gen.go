@@ -1348,14 +1348,8 @@ func (mod *modContext) genResource(res *schema.Resource) (string, error) {
 		// Emit logic to configure schema.ObjectType args that have defaults and deprecation messages.
 		if objType, ok := unwrapped.(*schema.ObjectType); ok {
 			expectedObjType := mod.objectClassRef(objType, true)
-			// If it's an external type, add a runtime check to ensure it has a static `_configure` method.
-			// We do this because the external type may not have the latest codegen which adds `_configure`.
-			var runtimeCheckForExternalTypes string
-			if !codegen.PkgEquals(objType.PackageReference, mod.pkg) {
-				runtimeCheckForExternalTypes = fmt.Sprintf(" and hasattr(%s, '_configure')", expectedObjType)
-			}
-			fmt.Fprintf(w, "            if %[1]s is not None and not isinstance(%[1]s, %s)%s:\n",
-				InitParamName(prop.Name), expectedObjType, runtimeCheckForExternalTypes)
+			fmt.Fprintf(w, "            if %[1]s is not None and not isinstance(%[1]s, %s):\n",
+				InitParamName(prop.Name), expectedObjType)
 			fmt.Fprintf(w, "                %[1]s = %[1]s or {}\n", InitParamName(prop.Name))
 			fmt.Fprintf(w, "                def _setter(key, value):\n")
 			fmt.Fprintf(w, "                    %s[key] = value\n", InitParamName(prop.Name))
@@ -2608,33 +2602,22 @@ func (mod *modContext) genType(w io.Writer, name, comment string, properties []*
 	fmt.Fprintf(w, "\n             _setter: Callable[[Any, Any], None],")
 	for _, prop := range props {
 		pname := PyName(prop.Name)
-		// Mark all props as optional as they will be set to None.
-		ty := mod.typeString(codegen.OptionalType(prop), input, false /*acceptMapping*/)
-		fmt.Fprintf(w, "\n             %s: %s = None,", pname, ty)
+		ty := mod.typeString(prop.Type, input, false /*acceptMapping*/)
+		if prop.DefaultValue != nil {
+			ty = mod.typeString(codegen.OptionalType(prop), input, false /*acceptMapping*/)
+		}
+
+		var defaultValue string
+		if !prop.IsRequired() || prop.DefaultValue != nil {
+			defaultValue = " = None"
+		}
+		fmt.Fprintf(w, "\n             %s: %s%s,", pname, ty, defaultValue)
 	}
 	// Catch ResourceOptions being expanded by `**kwargs`.
-	fmt.Fprintf(w, "\n             opts: Optional[pulumi.ResourceOptions]=None,")
-	fmt.Fprintf(w, "\n             **kwargs):\n")
+	fmt.Fprintf(w, "\n             opts: Optional[pulumi.ResourceOptions]=None):\n")
 	if len(props) == 0 {
 		fmt.Fprintf(w, "        pass\n")
 	}
-
-	// Handle original property names. (i.e. propName -> prop_name)
-	for _, prop := range props {
-		pname := PyName(prop.Name)
-		// Original property name different from python name and could be in the kwargs.
-		if pname != prop.Name {
-			fmt.Fprintf(w, "        if %s is None and '%s' in kwargs:\n", pname, prop.Name)
-			fmt.Fprintf(w, "            %s = kwargs['%s']\n", pname, prop.Name)
-		}
-		// Handle required argument not set.
-		if prop.IsRequired() && prop.DefaultValue == nil {
-			fmt.Fprintf(w, "        if %s is None:\n", pname)
-			fmt.Fprintf(w, `            raise TypeError("Missing '%s' argument")`+"\n", pname)
-		}
-	}
-	fmt.Fprintf(w, "\n")
-
 	for _, prop := range props {
 		pname := PyName(prop.Name)
 		var arg interface{}

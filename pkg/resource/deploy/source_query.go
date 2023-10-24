@@ -147,6 +147,9 @@ func runLangPlugin(src *querySource) error {
 	}
 	contract.Assertf(langhost != nil, "expected non-nil language host %s", rt)
 
+	// Make sure to clean up before exiting.
+	defer contract.IgnoreClose(langhost)
+
 	// Decrypt the configuration.
 	var config map[config.Key]string
 	if src.runinfo.Target != nil {
@@ -222,19 +225,15 @@ func newQueryResourceMonitor(
 				providerRegErrChan <- err
 				return
 			}
-			id, _, _, err := reg.Create(urn, inputs, 9999, false)
+			_, _, _, err = reg.Create(urn, inputs, 9999, false)
 			if err != nil {
 				providerRegErrChan <- err
 				return
 			}
 
-			contract.Assertf(id != "", "expected non-empty provider ID")
-			contract.Assertf(id != providers.UnknownID, "expected non-unknown provider ID")
-
 			e.done <- &RegisterResult{State: &resource.State{
 				Type: e.goal.Type,
 				URN:  urn,
-				ID:   id,
 			}}
 		}
 	}()

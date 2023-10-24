@@ -25,9 +25,7 @@ class TopLevel(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              buzz: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if buzz is not None:
             _setter("buzz", buzz)
 

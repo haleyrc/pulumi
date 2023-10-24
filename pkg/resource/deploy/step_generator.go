@@ -68,14 +68,11 @@ type stepGenerator struct {
 	aliased map[resource.URN]resource.URN
 	// a map from current URN of the resource to the old URN that it was aliased from.
 	aliases map[resource.URN]resource.URN
-
-	// targetsActual is the set of targets explicitly targeted by the engine, this can be different from opts.targets if
-	// --target-dependents is true. This does _not_ include resources that have been implicitly targeted, like providers.
-	targetsActual UrnTargets
 }
 
 // isTargetedForUpdate returns if `res` is targeted for update. The function accommodates
-// `--target-dependents`.
+// `--target-dependents`. `targetDependentsForUpdate` should probably be called if this function
+// returns true.
 func (sg *stepGenerator) isTargetedForUpdate(res *resource.State) bool {
 	if sg.opts.Targets.Contains(res.URN) {
 		return true
@@ -87,18 +84,20 @@ func (sg *stepGenerator) isTargetedForUpdate(res *resource.State) bool {
 		proivderRef, err := providers.ParseReference(ref)
 		contract.AssertNoErrorf(err, "failed to parse provider reference: %v", ref)
 		providerURN := proivderRef.URN()
-		if sg.targetsActual.Contains(providerURN) {
+		// We don't follow default provider dependents, as default providers are internally managed and are
+		// always targeted. See https://github.com/pulumi/pulumi/issues/13557 for context of what happens if
+		// we do follow these.
+		if !providers.IsDefaultProvider(providerURN) && sg.opts.Targets.Contains(providerURN) {
 			return true
 		}
 	}
-
 	if res.Parent != "" {
-		if sg.targetsActual.Contains(res.Parent) {
+		if sg.opts.Targets.Contains(res.Parent) {
 			return true
 		}
 	}
 	for _, dep := range res.Dependencies {
-		if dep != "" && sg.targetsActual.Contains(dep) {
+		if dep != "" && sg.opts.Targets.Contains(dep) {
 			return true
 		}
 	}
@@ -636,16 +635,14 @@ func (sg *stepGenerator) generateSteps(event RegisterResourceEvent) ([]Step, err
 		return []Step{NewImportStep(sg.deployment, event, new, goal.IgnoreChanges, randomSeed)}, nil
 	}
 
-	isImplicitlyTargetedResource := providers.IsProviderType(urn.Type()) || urn.Type() == resource.RootStackType
+	isUserResource := !(providers.IsDefaultProvider(urn) || urn.Type() == resource.RootStackType)
 
-	// Internally managed resources are under Pulumi's control and changes or creations should be invisible to
-	// the user, we also implicitly target providers (both default and explicit, see
-	// https://github.com/pulumi/pulumi/issues/13557 and https://github.com/pulumi/pulumi/issues/13591 for
-	// context on why).
+	// Internally managed resources are under Pulumi's control and changes or creations should be invisible
+	// to the user.
 
 	// Resources are targeted by default
 	isTargeted := true
-	if sg.opts.Targets.IsConstrained() && !isImplicitlyTargetedResource {
+	if sg.opts.Targets.IsConstrained() && isUserResource {
 		isTargeted = sg.isTargetedForUpdate(new)
 	}
 
@@ -857,13 +854,10 @@ func (sg *stepGenerator) generateSteps(event RegisterResourceEvent) ([]Step, err
 		}, nil
 	}
 
-	// This looks odd that we have to recheck isTargetedForUpdate but it's to cover implicitly targeted
-	// resources like providers (where isTargeted is always true), but which might have been _explicitly_
-	// targeted due to being in the --targets list or being explicitly pulled in by --target-dependents.
-	if isTargeted && sg.isTargetedForUpdate(new) {
+	if isTargeted {
 		// Transitive dependencies are not initially targeted, ensure that they are in the Targets so that the
-		// step_generator identifies that the URN is targeted if applicable
-		sg.targetsActual.addLiteral(urn)
+		// deployment_executor identifies that the URN is targeted if applicable
+		sg.opts.Targets.addLiteral(urn)
 	}
 
 	// Case 3: hasOld
@@ -1623,7 +1617,7 @@ func diffResource(urn resource.URN, id resource.ID, oldInputs, oldOutputs,
 		if tmp.AnyChanges() {
 			diff.Changes = plugin.DiffSome
 			diff.ChangedKeys = tmp.ChangedKeys()
-			diff.DetailedDiff = plugin.NewDetailedDiffFromObjectDiff(tmp, true /* inputDiff */)
+			diff.DetailedDiff = plugin.NewDetailedDiffFromObjectDiff(tmp)
 		} else {
 			diff.Changes = plugin.DiffNone
 		}
@@ -2042,6 +2036,5 @@ func newStepGenerator(
 		dependentReplaceKeys: make(map[resource.URN][]resource.PropertyKey),
 		aliased:              make(map[resource.URN]resource.URN),
 		aliases:              make(map[resource.URN]resource.URN),
-		targetsActual:        opts.Targets.Clone(),
 	}
 }

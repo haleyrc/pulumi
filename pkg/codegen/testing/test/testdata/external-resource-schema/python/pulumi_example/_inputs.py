@@ -37,32 +37,14 @@ class PetArgs:
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             required_name: Optional[pulumi.Input['pulumi_random.RandomPet']] = None,
-             required_name_array: Optional[pulumi.Input[Sequence[pulumi.Input['pulumi_random.RandomPet']]]] = None,
-             required_name_map: Optional[pulumi.Input[Mapping[str, pulumi.Input['pulumi_random.RandomPet']]]] = None,
+             required_name: pulumi.Input['pulumi_random.RandomPet'],
+             required_name_array: pulumi.Input[Sequence[pulumi.Input['pulumi_random.RandomPet']]],
+             required_name_map: pulumi.Input[Mapping[str, pulumi.Input['pulumi_random.RandomPet']]],
              age: Optional[pulumi.Input[int]] = None,
              name: Optional[pulumi.Input['pulumi_random.RandomPet']] = None,
              name_array: Optional[pulumi.Input[Sequence[pulumi.Input['pulumi_random.RandomPet']]]] = None,
              name_map: Optional[pulumi.Input[Mapping[str, pulumi.Input['pulumi_random.RandomPet']]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if required_name is None and 'requiredName' in kwargs:
-            required_name = kwargs['requiredName']
-        if required_name is None:
-            raise TypeError("Missing 'required_name' argument")
-        if required_name_array is None and 'requiredNameArray' in kwargs:
-            required_name_array = kwargs['requiredNameArray']
-        if required_name_array is None:
-            raise TypeError("Missing 'required_name_array' argument")
-        if required_name_map is None and 'requiredNameMap' in kwargs:
-            required_name_map = kwargs['requiredNameMap']
-        if required_name_map is None:
-            raise TypeError("Missing 'required_name_map' argument")
-        if name_array is None and 'nameArray' in kwargs:
-            name_array = kwargs['nameArray']
-        if name_map is None and 'nameMap' in kwargs:
-            name_map = kwargs['nameMap']
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("required_name", required_name)
         _setter("required_name_array", required_name_array)
         _setter("required_name_map", required_name_map)

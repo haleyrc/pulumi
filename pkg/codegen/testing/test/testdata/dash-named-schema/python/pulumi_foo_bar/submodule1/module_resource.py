@@ -28,9 +28,7 @@ class ModuleResourceArgs:
     def _configure(
              _setter: Callable[[Any, Any], None],
              thing: Optional[pulumi.Input['_root_inputs.TopLevelArgs']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-
+             opts: Optional[pulumi.ResourceOptions]=None):
         if thing is not None:
             _setter("thing", thing)
 

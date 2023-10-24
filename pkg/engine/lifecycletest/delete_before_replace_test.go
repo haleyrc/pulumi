@@ -13,6 +13,7 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/result"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 )
 
@@ -173,9 +174,9 @@ func TestDeleteBeforeReplace(t *testing.T) {
 		ExpectFailure: false,
 		SkipPreview:   true,
 		Validate: func(project workspace.Project, target deploy.Target, entries JournalEntries,
-			evts []Event, err error,
-		) error {
-			assert.NoError(t, err)
+			evts []Event, res result.Result,
+		) result.Result {
+			assert.Nil(t, res)
 
 			replaced := make(map[resource.URN]bool)
 			for _, entry := range entries {
@@ -193,7 +194,7 @@ func TestDeleteBeforeReplace(t *testing.T) {
 				pickURN(t, urns, names, "K"): true,
 			}, replaced)
 
-			return err
+			return res
 		},
 	}}
 
@@ -346,9 +347,9 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 		Op: Update,
 
 		Validate: func(project workspace.Project, target deploy.Target, entries JournalEntries,
-			evts []Event, err error,
-		) error {
-			assert.NoError(t, err)
+			evts []Event, res result.Result,
+		) result.Result {
+			assert.Nil(t, res)
 
 			AssertSameSteps(t, []StepSummary{
 				{Op: deploy.OpSame, URN: provURN},
@@ -358,7 +359,7 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 				{Op: deploy.OpDeleteReplaced, URN: urnA},
 			}, SuccessfulSteps(entries))
 
-			return err
+			return res
 		},
 	}}
 	snap = p.Run(t, snap)
@@ -370,9 +371,9 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 		Op: Update,
 
 		Validate: func(project workspace.Project, target deploy.Target, entries JournalEntries,
-			evts []Event, err error,
-		) error {
-			assert.NoError(t, err)
+			evts []Event, res result.Result,
+		) result.Result {
+			assert.Nil(t, res)
 
 			AssertSameSteps(t, []StepSummary{
 				{Op: deploy.OpSame, URN: provURN},
@@ -384,7 +385,7 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 				{Op: deploy.OpCreateReplacement, URN: urnB},
 			}, SuccessfulSteps(entries))
 
-			return err
+			return res
 		},
 	}}
 	snap = p.Run(t, snap)
@@ -395,9 +396,9 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 		Op: Update,
 
 		Validate: func(project workspace.Project, target deploy.Target, entries JournalEntries,
-			evts []Event, err error,
-		) error {
-			assert.NoError(t, err)
+			evts []Event, res result.Result,
+		) result.Result {
+			assert.Nil(t, res)
 
 			AssertSameSteps(t, []StepSummary{
 				{Op: deploy.OpSame, URN: provURN},
@@ -407,7 +408,7 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 				{Op: deploy.OpDeleteReplaced, URN: urnB},
 			}, SuccessfulSteps(entries))
 
-			return err
+			return res
 		},
 	}}
 	snap = p.Run(t, snap)
@@ -419,9 +420,9 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 		Op: Update,
 
 		Validate: func(project workspace.Project, target deploy.Target, entries JournalEntries,
-			evts []Event, err error,
-		) error {
-			assert.NoError(t, err)
+			evts []Event, res result.Result,
+		) result.Result {
+			assert.Nil(t, res)
 
 			AssertSameSteps(t, []StepSummary{
 				{Op: deploy.OpSame, URN: provURN},
@@ -431,7 +432,7 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 				{Op: deploy.OpDeleteReplaced, URN: urnA},
 			}, SuccessfulSteps(entries))
 
-			return err
+			return res
 		},
 	}}
 	snap = p.Run(t, snap)
@@ -443,9 +444,9 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 		Op: Update,
 
 		Validate: func(project workspace.Project, target deploy.Target, entries JournalEntries,
-			evts []Event, err error,
-		) error {
-			assert.NoError(t, err)
+			evts []Event, res result.Result,
+		) result.Result {
+			assert.Nil(t, res)
 
 			AssertSameSteps(t, []StepSummary{
 				{Op: deploy.OpSame, URN: provURN},
@@ -457,7 +458,7 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 				{Op: deploy.OpCreateReplacement, URN: urnB},
 			}, SuccessfulSteps(entries))
 
-			return err
+			return res
 		},
 	}}
 	snap = p.Run(t, snap)
@@ -469,9 +470,9 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 		Op: Update,
 
 		Validate: func(project workspace.Project, target deploy.Target, entries JournalEntries,
-			evts []Event, err error,
-		) error {
-			assert.NoError(t, err)
+			evts []Event, res result.Result,
+		) result.Result {
+			assert.Nil(t, res)
 
 			AssertSameSteps(t, []StepSummary{
 				{Op: deploy.OpSame, URN: provURN},
@@ -481,7 +482,7 @@ func TestExplicitDeleteBeforeReplace(t *testing.T) {
 				{Op: deploy.OpDeleteReplaced, URN: urnA},
 			}, SuccessfulSteps(entries))
 
-			return err
+			return res
 		},
 	}}
 	p.Run(t, snap)
@@ -568,9 +569,9 @@ func TestDependencyChangeDBR(t *testing.T) {
 		{
 			Op: Update,
 			Validate: func(project workspace.Project, target deploy.Target, entries JournalEntries,
-				evts []Event, err error,
-			) error {
-				assert.NoError(t, err)
+				evts []Event, res result.Result,
+			) result.Result {
+				assert.Nil(t, res)
 				assert.True(t, len(entries) > 0)
 
 				resBDeleted, resBSame := false, false
@@ -587,7 +588,7 @@ func TestDependencyChangeDBR(t *testing.T) {
 				assert.True(t, resBSame)
 				assert.False(t, resBDeleted)
 
-				return err
+				return res
 			},
 		},
 	}

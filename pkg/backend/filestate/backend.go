@@ -64,6 +64,41 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 )
 
+// TODO[pulumi/pulumi#12539]:
+// This section contains names of environment variables
+// that affect the behavior of the backend.
+//
+// These must all be registered in common/env so that they're available
+// with the 'pulumi env' command.
+// However, we don't currently use env.Value() to access their values
+// because it prevents us from overriding the definition of os.Getenv
+// in tests.
+var (
+	// PulumiFilestateNoLegacyWarningEnvVar is an env var that must be truthy
+	// to disable the warning printed by the filestate backend
+	// when it detects that the state has both, project-scoped and legacy stacks.
+	PulumiFilestateNoLegacyWarningEnvVar = env.SelfManagedStateNoLegacyWarning.Var().Name()
+
+	// PulumiFilestateLegacyLayoutEnvVar is the name of an environment variable
+	// that can be set to force the use of the legacy layout
+	// when initializing an empty bucket for filestate.
+	//
+	// This opt-out is intended to be removed in a future release.
+	PulumiFilestateLegacyLayoutEnvVar = env.SelfManagedStateLegacyLayout.Var().Name()
+
+	// PulumiFilestateGzipEnvVar is an env var that must be truthy
+	// to enable gzip compression when using the filestate backend.
+	PulumiFilestateGzipEnvVar = env.SelfManagedGzip.Var().Name()
+
+	// PulumiFilestateRetainCheckpoints is an env var that must be truthy
+	// to write out timestamped state files.
+	PulumiFilestateRetainCheckpoints = env.SelfManagedRetainCheckpoints.Var().Name()
+
+	// PulumiFilestateRetainCheckpoints is an env var that must be truthy
+	// to disable checkpoint backups.
+	PulumiFilestateDisableCheckpointBackups = env.SelfManagedDisableCheckpointBackups.Var().Name()
+)
+
 // UpgradeOptions customizes the behavior of the upgrade operation.
 type UpgradeOptions struct {
 	// ProjectsForDetachedStacks is an optional function that is able to
@@ -108,7 +143,7 @@ type localBackend struct {
 
 	gzip bool
 
-	Env env.Env
+	Getenv func(string) string // == os.Getenv
 
 	// The current project, if any.
 	currentProject atomic.Pointer[workspace.Project]
@@ -197,10 +232,10 @@ func New(ctx context.Context, d diag.Sink, originalURL string, project *workspac
 }
 
 type localBackendOptions struct {
-	// Env specifies how to get environment variables.
+	// Getenv specifies how to get environment variables.
 	//
-	// Defaults to env.Global
-	Env env.Env
+	// Defaults to os.Getenv.
+	Getenv func(string) string
 }
 
 // newLocalBackend builds a filestate backend implementation
@@ -212,8 +247,8 @@ func newLocalBackend(
 	if opts == nil {
 		opts = &localBackendOptions{}
 	}
-	if opts.Env == nil {
-		opts.Env = env.Global()
+	if opts.Getenv == nil {
+		opts.Getenv = os.Getenv
 	}
 
 	if !IsFileStateBackendURL(originalURL) {
@@ -264,7 +299,7 @@ func newLocalBackend(
 		return nil, err
 	}
 
-	gzipCompression := opts.Env.GetBool(env.SelfManagedGzip)
+	gzipCompression := cmdutil.IsTruthy(opts.Getenv(PulumiFilestateGzipEnvVar))
 
 	wbucket := &wrappedBucket{bucket: bucket}
 	bucket = nil // prevent accidental use of unwrapped bucket
@@ -276,14 +311,14 @@ func newLocalBackend(
 		bucket:      wbucket,
 		lockID:      lockID.String(),
 		gzip:        gzipCompression,
-		Env:         opts.Env,
+		Getenv:      opts.Getenv,
 	}
 	backend.currentProject.Store(project)
 
 	// Read the Pulumi state metadata
 	// and ensure that it is compatible with this version of the CLI.
 	// The version in the metadata file informs which store we use.
-	meta, err := ensurePulumiMeta(ctx, wbucket, opts.Env)
+	meta, err := ensurePulumiMeta(ctx, wbucket, opts.Getenv)
 	if err != nil {
 		return nil, err
 	}
@@ -314,7 +349,7 @@ func newLocalBackend(
 	}
 
 	// If we're not in project mode, or we've disabled the warning, we're done.
-	if !projectMode || opts.Env.GetBool(env.SelfManagedStateNoLegacyWarning) {
+	if !projectMode || cmdutil.IsTruthy(opts.Getenv(PulumiFilestateNoLegacyWarningEnvVar)) {
 		return backend, nil
 	}
 	// Otherwise, warn about any old stack files.
@@ -1024,22 +1059,21 @@ func (b *localBackend) apply(
 	start := time.Now().Unix()
 	var plan *deploy.Plan
 	var changes sdkDisplay.ResourceChanges
-	var updateErr error
+	var updateRes result.Result
 	switch kind {
 	case apitype.PreviewUpdate:
-		plan, changes, updateErr = engine.Update(update, engineCtx, op.Opts.Engine, true)
+		plan, changes, updateRes = engine.Update(update, engineCtx, op.Opts.Engine, true)
 	case apitype.UpdateUpdate:
-		_, changes, updateErr = engine.Update(update, engineCtx, op.Opts.Engine, opts.DryRun)
+		_, changes, updateRes = engine.Update(update, engineCtx, op.Opts.Engine, opts.DryRun)
 	case apitype.ResourceImportUpdate:
-		_, changes, updateErr = engine.Import(update, engineCtx, op.Opts.Engine, op.Imports, opts.DryRun)
+		_, changes, updateRes = engine.Import(update, engineCtx, op.Opts.Engine, op.Imports, opts.DryRun)
 	case apitype.RefreshUpdate:
-		_, changes, updateErr = engine.Refresh(update, engineCtx, op.Opts.Engine, opts.DryRun)
+		_, changes, updateRes = engine.Refresh(update, engineCtx, op.Opts.Engine, opts.DryRun)
 	case apitype.DestroyUpdate:
-		_, changes, updateErr = engine.Destroy(update, engineCtx, op.Opts.Engine, opts.DryRun)
+		_, changes, updateRes = engine.Destroy(update, engineCtx, op.Opts.Engine, opts.DryRun)
 	default:
 		contract.Failf("Unrecognized update kind: %s", kind)
 	}
-	updateRes := result.WrapIfNonNil(updateErr)
 	end := time.Now().Unix()
 
 	// Wait for the display to finish showing all the events.

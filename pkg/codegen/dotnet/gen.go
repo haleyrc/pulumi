@@ -35,7 +35,6 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/common/diag"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource/plugin"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/slice"
-	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/cmdutil"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 )
@@ -115,17 +114,11 @@ func namespaceName(namespaces map[string]string, name string) string {
 	if ns, ok := namespaces[name]; ok {
 		return ns
 	}
-
-	// name could be a qualified module name so first split on /
-	parts := strings.Split(name, tokens.QNameDelimiter)
-	for i, part := range parts {
-		names := strings.Split(part, "-")
-		for j, name := range names {
-			names[j] = Title(name)
-		}
-		parts[i] = strings.Join(names, "")
+	names := strings.Split(name, "-")
+	for i, name := range names {
+		names[i] = Title(name)
 	}
-	return strings.Join(parts, ".")
+	return strings.Join(names, "")
 }
 
 type modContext struct {

@@ -37,35 +37,13 @@ class ResourceArgs:
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
-             config: Optional[pulumi.Input['ConfigArgs']] = None,
-             config_array: Optional[pulumi.Input[Sequence[pulumi.Input['ConfigArgs']]]] = None,
-             config_map: Optional[pulumi.Input[Mapping[str, pulumi.Input['ConfigArgs']]]] = None,
-             foo: Optional[pulumi.Input[str]] = None,
-             foo_array: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
-             foo_map: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None,
-             **kwargs):
-        if config is None:
-            raise TypeError("Missing 'config' argument")
-        if config_array is None and 'configArray' in kwargs:
-            config_array = kwargs['configArray']
-        if config_array is None:
-            raise TypeError("Missing 'config_array' argument")
-        if config_map is None and 'configMap' in kwargs:
-            config_map = kwargs['configMap']
-        if config_map is None:
-            raise TypeError("Missing 'config_map' argument")
-        if foo is None:
-            raise TypeError("Missing 'foo' argument")
-        if foo_array is None and 'fooArray' in kwargs:
-            foo_array = kwargs['fooArray']
-        if foo_array is None:
-            raise TypeError("Missing 'foo_array' argument")
-        if foo_map is None and 'fooMap' in kwargs:
-            foo_map = kwargs['fooMap']
-        if foo_map is None:
-            raise TypeError("Missing 'foo_map' argument")
-
+             config: pulumi.Input['ConfigArgs'],
+             config_array: pulumi.Input[Sequence[pulumi.Input['ConfigArgs']]],
+             config_map: pulumi.Input[Mapping[str, pulumi.Input['ConfigArgs']]],
+             foo: pulumi.Input[str],
+             foo_array: pulumi.Input[Sequence[pulumi.Input[str]]],
+             foo_map: pulumi.Input[Mapping[str, pulumi.Input[str]]],
+             opts: Optional[pulumi.ResourceOptions]=None):
         _setter("config", config)
         _setter("config_array", config_array)
         _setter("config_map", config_map)

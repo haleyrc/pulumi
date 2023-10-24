@@ -73,9 +73,8 @@ type Provider interface {
 	Update(urn resource.URN, id resource.ID,
 		oldInputs, oldOutputs, newInputs resource.PropertyMap, timeout float64,
 		ignoreChanges []string, preview bool) (resource.PropertyMap, resource.Status, error)
-	// Delete tears down an existing resource. The inputs and outputs are the last recorded ones from state.
-	Delete(urn resource.URN, id resource.ID,
-		inputs, outputs resource.PropertyMap, timeout float64) (resource.Status, error)
+	// Delete tears down an existing resource.
+	Delete(urn resource.URN, id resource.ID, props resource.PropertyMap, timeout float64) (resource.Status, error)
 
 	// Construct creates a new component resource.
 	Construct(info ConstructInfo, typ tokens.Type, name tokens.QName, parent resource.URN, inputs resource.PropertyMap,
@@ -238,16 +237,16 @@ type DiffResult struct {
 }
 
 // NewDetailedDiffFromObjectDiff computes the detailed diff of Updated, Added and Deleted keys.
-func NewDetailedDiffFromObjectDiff(diff *resource.ObjectDiff, inputDiff bool) map[string]PropertyDiff {
+func NewDetailedDiffFromObjectDiff(diff *resource.ObjectDiff) map[string]PropertyDiff {
 	if diff == nil {
 		return map[string]PropertyDiff{}
 	}
 	out := map[string]PropertyDiff{}
-	objectDiffToDetailedDiff("", diff, inputDiff, out)
+	objectDiffToDetailedDiff("", diff, out)
 	return out
 }
 
-func objectDiffToDetailedDiff(prefix string, diff *resource.ObjectDiff, inputDiff bool, acc map[string]PropertyDiff) {
+func objectDiffToDetailedDiff(prefix string, diff *resource.ObjectDiff, acc map[string]PropertyDiff) {
 	getPrefix := func(k resource.PropertyKey) string {
 		if prefix == "" {
 			return string(k)
@@ -257,46 +256,46 @@ func objectDiffToDetailedDiff(prefix string, diff *resource.ObjectDiff, inputDif
 
 	for k, vd := range diff.Updates {
 		nestedPrefix := getPrefix(k)
-		valueDiffToDetailedDiff(nestedPrefix, vd, inputDiff, acc)
+		valueDiffToDetailedDiff(nestedPrefix, vd, acc)
 	}
 
 	for k := range diff.Adds {
 		nestedPrefix := getPrefix(k)
-		acc[nestedPrefix] = PropertyDiff{Kind: DiffAdd, InputDiff: inputDiff}
+		acc[nestedPrefix] = PropertyDiff{Kind: DiffAdd}
 	}
 
 	for k := range diff.Deletes {
 		nestedPrefix := getPrefix(k)
-		acc[nestedPrefix] = PropertyDiff{Kind: DiffDelete, InputDiff: inputDiff}
+		acc[nestedPrefix] = PropertyDiff{Kind: DiffDelete}
 	}
 }
 
-func arrayDiffToDetailedDiff(prefix string, d *resource.ArrayDiff, inputDiff bool, acc map[string]PropertyDiff) {
+func arrayDiffToDetailedDiff(prefix string, d *resource.ArrayDiff, acc map[string]PropertyDiff) {
 	nestedPrefix := func(i int) string { return fmt.Sprintf("%s[%d]", prefix, i) }
 	for i, vd := range d.Updates {
-		valueDiffToDetailedDiff(nestedPrefix(i), vd, inputDiff, acc)
+		valueDiffToDetailedDiff(nestedPrefix(i), vd, acc)
 	}
 	for i := range d.Adds {
-		acc[nestedPrefix(i)] = PropertyDiff{Kind: DiffAdd, InputDiff: inputDiff}
+		acc[nestedPrefix(i)] = PropertyDiff{Kind: DiffAdd}
 	}
 	for i := range d.Deletes {
-		acc[nestedPrefix(i)] = PropertyDiff{Kind: DiffDelete, InputDiff: inputDiff}
+		acc[nestedPrefix(i)] = PropertyDiff{Kind: DiffDelete}
 	}
 }
 
-func valueDiffToDetailedDiff(prefix string, vd resource.ValueDiff, inputDiff bool, acc map[string]PropertyDiff) {
+func valueDiffToDetailedDiff(prefix string, vd resource.ValueDiff, acc map[string]PropertyDiff) {
 	if vd.Object != nil {
-		objectDiffToDetailedDiff(prefix, vd.Object, inputDiff, acc)
+		objectDiffToDetailedDiff(prefix, vd.Object, acc)
 	} else if vd.Array != nil {
-		arrayDiffToDetailedDiff(prefix, vd.Array, inputDiff, acc)
+		arrayDiffToDetailedDiff(prefix, vd.Array, acc)
 	} else {
 		switch {
 		case vd.Old.V == nil && vd.New.V != nil:
-			acc[prefix] = PropertyDiff{Kind: DiffAdd, InputDiff: inputDiff}
+			acc[prefix] = PropertyDiff{Kind: DiffAdd}
 		case vd.Old.V != nil && vd.New.V == nil:
-			acc[prefix] = PropertyDiff{Kind: DiffDelete, InputDiff: inputDiff}
+			acc[prefix] = PropertyDiff{Kind: DiffDelete}
 		default:
-			acc[prefix] = PropertyDiff{Kind: DiffUpdate, InputDiff: inputDiff}
+			acc[prefix] = PropertyDiff{Kind: DiffUpdate}
 		}
 	}
 }
